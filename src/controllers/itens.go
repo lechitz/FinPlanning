@@ -6,8 +6,10 @@ import (
 	"api/src/repositorios"
 	"api/src/respostas"
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -65,13 +67,87 @@ func BuscarItens(w http.ResponseWriter, r *http.Request) {
 }
 
 func BuscarItem(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Buscando um item"))
+	parametros := mux.Vars(r)
+
+	itemID, erro := strconv.ParseUint(parametros["itemId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := banco.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeItens(db)
+	item, erro := repositorio.BuscarItemID(itemID)
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusOK, item)
 }
 
 func AtualizarItem(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Atualizando um item"))
+	parametros := mux.Vars(r)
+	itemID, erro := strconv.ParseUint(parametros["itemId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	corpoRequisicao, erro := ioutil.ReadAll(r.Body)
+	if erro != nil {
+		respostas.Erro(w, http.StatusUnprocessableEntity, erro)
+		return
+	}
+
+	var item modelos.Item
+	if erro = json.Unmarshal(corpoRequisicao, &item); erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := banco.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeItens(db)
+	if erro = repositorio.AtualizarItem(itemID, item); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusNoContent, nil)
 }
 
 func DeletarItem(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Deletando um item"))
+	parametros := mux.Vars(r)
+	itemID, erro := strconv.ParseUint(parametros["itemId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := banco.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeItens(db)
+	if erro = repositorio.DeletarItem(itemID); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusNoContent, nil)
 }

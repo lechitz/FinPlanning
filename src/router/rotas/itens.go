@@ -32,7 +32,7 @@ var rotasItens = []Rota{
 	},
 	{
 		//Método DELETE para um item específico
-		URI: "itens/{itemId}",
+		URI: "/itens/{itemId}",
 		Metodo: http.MethodDelete,
 		Funcao: controllers.DeletarItem,
 	},
