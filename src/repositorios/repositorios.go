@@ -92,3 +92,16 @@ func (repositorio Itens) BuscarItemID(qualItem uint64) (modelos.Item, error) {
 
 	return item, nil
 }
+
+func (repositorio Itens) AtualizarItem(ID uint64, item modelos.Item) error {
+	statement, erro := repositorio.db.Prepare("update itens set item=?, valor=?, quantidadeDeParcelas=?, beneficiario=? where id=?")
+	if erro != nil {
+		return erro
+	}
+	defer statement.Close()
+
+	if _, erro := statement.Exec(item.Item, item.Valor, item.QuantidadeDeParcelas, item.Beneficiario, ID); erro != nil {
+		return erro
+	}
+	return nil
+}
