@@ -105,3 +105,17 @@ func (repositorio Itens) AtualizarItem(ID uint64, item modelos.Item) error {
 	}
 	return nil
 }
+
+func (repositorio Itens) DeletarItem(ID uint64) error {
+	statement, erro := repositorio.db.Prepare("delete from itens where id=?")
+	if erro != nil {
+		return erro
+	}
+	defer statement.Close()
+
+	if _, erro = statement.Exec(ID); erro != nil {
+		return erro
+	}
+
+	return nil
+}

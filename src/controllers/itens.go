@@ -129,5 +129,25 @@ func AtualizarItem(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeletarItem(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Deletando um item"))
+	parametros := mux.Vars(r)
+	itemID, erro := strconv.ParseUint(parametros["itemId"], 10, 64)
+	if erro != nil {
+		respostas.Erro(w, http.StatusBadRequest, erro)
+		return
+	}
+
+	db, erro := banco.Conectar()
+	if erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+	defer db.Close()
+
+	repositorio := repositorios.NovoRepositorioDeItens(db)
+	if erro = repositorio.DeletarItem(itemID); erro != nil {
+		respostas.Erro(w, http.StatusInternalServerError, erro)
+		return
+	}
+
+	respostas.JSON(w, http.StatusNoContent, nil)
 }
